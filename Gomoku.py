@@ -9,33 +9,48 @@ This is a placeholder that you should remove once you modify the function.
 Author(s): Michael Guerzhoy with tests contributed by Siavash Kazemian.  Last modified: Oct. 16, 2025
 """
 
-# Directions (d_y, d_x): 
-# (0,1) = right, (1,0) = down, (1,1) = down-right diagonal, (1,-1) = down-left diagonal
-# The sequence "end" is the last position reached when moving in that direction
-
-def is_empty(board): # (IGNORE: TA/PROF)checked and "PASSED" 
-    for i in range(9):
-        if board[i][i] == "w" or board[i][i] == "b": 
-            return False 
-        elif board[i][i] == " " :
-            return True 
-        else: 
-            pass
+def is_empty(board):  
+    for i in range(len(board)):
+        for j in range(len(board)):
+            if board[i][j] == "w" or board[i][j] == "b": 
+                return False 
+    return True
+         
 #-------
-
-def is_bounded(board, y_end, x_end, length, d_y, d_x): #(IGNORE: TA/PROF) checked and "PASSED" 
+def is_bounded(board, y_end, x_end, length, d_y, d_x): 
     y_origin = y_end - ((length - 1) * d_y)
     x_origin = x_end - ((length - 1) * d_x)
-    if board[y_end + d_y][x_end + d_x] == " " and board[y_origin - d_y][x_origin - d_x] == " ": 
-        return "OPEN"
-    elif board[y_end + d_y][x_end + d_x] == " " or board[y_origin - d_y][x_origin - d_x] == " ":
-        return "SEMIOPEN"
-    else: 
-        return "CLOSED"
-        
-#-------
+    size = len(board)
 
-def detect_row(board, col, y_start, x_start, length, d_y, d_x): # (IGNORE: TA/PROF) checked and "PASSED"
+    def in_board(y, x):
+        if y < 0 or y >= size:
+            return False
+        if x < 0 or x >= size:
+            return False
+        return True
+
+    if y_end == len(board) - 1 or x_end == len(board) - 1:
+        if y_origin == 0 or x_origin == 0:
+            return "CLOSED"
+        elif in_board(y_origin - d_y, x_origin - d_x) and board[y_origin - d_y][x_origin - d_x] == " ":
+            return "SEMIOPEN"
+        else: return "CLOSED" 
+    if y_origin == len(board) - 1 or x_origin == len(board) - 1:
+        if y_end == 0 or x_end == 0:
+            return "CLOSED"
+        elif in_board(y_end - d_y, x_end - d_x) and board[y_end - d_y][x_end - d_x] == " ":
+            return "SEMIOPEN"
+        else: return "CLOSED" 
+
+    else:
+        if (in_board(y_end + d_y, x_end + d_x) and board[y_end + d_y][x_end + d_x] == " ") and (in_board(y_origin - d_y, x_origin - d_x) and board[y_origin - d_y][x_origin - d_x] == " "): 
+            return "OPEN"
+        elif (in_board(y_end + d_y, x_end + d_x) and board[y_end + d_y][x_end + d_x] == " ") or (in_board(y_origin - d_y, x_origin - d_x) and board[y_origin - d_y][x_origin - d_x] == " "):
+            return "SEMIOPEN"
+        else: 
+            return "CLOSED"    
+
+def detect_row(board, col, y_start, x_start, length, d_y, d_x): 
     open_seq_count = 0
     semi_open_seq_count = 0
     counter = 0
@@ -64,9 +79,8 @@ def detect_row(board, col, y_start, x_start, length, d_y, d_x): # (IGNORE: TA/PR
                 counter = 0
     return (open_seq_count, semi_open_seq_count)
 
-#-------
 
-def detect_rows(board, col, length):  # (IGNORE: TA/PROF) checked and "PASSED"
+def detect_rows(board, col, length):
     open_seq_count = 0
     semi_open_seq_count = 0
     for i in range(len(board)): 
@@ -91,33 +105,21 @@ def detect_rows(board, col, length):  # (IGNORE: TA/PROF) checked and "PASSED"
             semi_open_seq_count += l
     return(open_seq_count, semi_open_seq_count)
     
-def search_max(board):
+def search_max(board): #passed
+    cur_max = -100000
+    move_y = 0
+    move_x = 0
     for i in range(len(board)): 
         for j in range(len(board)): 
             if board[i][j] == " ": 
                 board[i][j] = "b"
-                if -100000 < score(board):
-                    x_cur = score(board)
-    
-        
-
-
-
-
-    
-
-    
+                if cur_max < score(board):
+                    cur_max = score(board)
+                    move_y = i 
+                    move_x = j 
+                board[i][j] = " "    
     return move_y, move_x
 
-
-'''search max(board):
-    This function uses the function score() (provided) to find the optimal move for black. It finds the
-    location (y,x), such that (y,x) is empty and putting a black stone on (y,x) maximizes the score of
-    the board as calculated by score(). The function returns a tuple (y, x) such that putting a black
-    stone in coordinates (y, x) maximizes the potential score (if there are several such tuples, you can
-    return any one of them). After the function returns, the contents of board must remain the same.'''
-
- #-----------------------------------------------------------------------------
 
 def score(board):
     MAX_SCORE = 100000
@@ -147,15 +149,70 @@ def score(board):
             10   * semi_open_b[3]                +  
             open_b[2] + semi_open_b[2] - open_w[2] - semi_open_w[2])
 
-#-----------------------------------------------------------------------------
 
-    
+
 def is_win(board):
-    pass
+    counter_w = 0
+    counter_b = 0
+    counter_e = 0
+    #horizontal axis
+    for j in range(4): 
+        for i in range(8):
+            if board[i][j] == "w":
+                counter_w += 1
+            elif board[i][j] == "b":
+                counter_b += 1
+            elif board[i][j] == " ":
+                counter_e += 1
+    if counter_w == 5:
+        print("White won")
+    elif counter_b == 5:
+        print("Black won")
+    elif counter_e> counter_w and counter_e>counter_b: 
+        print("Continue playing")
+    else: 
+        pass
+    
+    # vertical axis 
+    counter_w1 = 0
+    counter_b1 = 0
+    counter_e1 = 0
+    for j in range(8):
+        for i in range(4):
+            if board[i][j] == "w":
+                counter_w1 += 1
+            elif board[i][j] == "b":
+                counter_b1 += 1
+            elif board[i][j] == " ":
+                counter_e1 += 1
+    if counter_w1 == 5:
+        print("White won")
+    elif counter_b1 == 5:
+        print("Black won")
+    elif counter_e1> counter_w1 and counter_e1>counter_b1: 
+        print("Continue playing")
+    else: 
+        pass
 
-#-----------------------------------------------------------------------------
-#-----------------------------------------------------------------------------
-#-----------------------------------------------------------------------------
+    counter_w2 = 0
+    counter_b2 = 0
+    counter_e2 = 0
+    for j in range(4):
+        for i in range(4):
+            if board[i][j] == "w":
+                counter_w2 += 1
+            elif board[i][j] == "b":
+                counter_b2 += 1
+            elif board[i][j] == " ":
+                counter_e2 += 1
+    if counter_w2 == 5:
+        print("White won")
+    elif counter_b2 == 5:
+        print("Black won")
+    elif counter_e2> counter_w2 and counter_e2>counter_b2: 
+        print("Continue playing")
+    else: 
+        pass
 
 
 def print_board(board):
@@ -430,4 +487,5 @@ if __name__ == '__main__':
     test_is_empty()
     test_detect_row()
     test_detect_rows()
+    test_search_max()
     
